@@ -89,9 +89,8 @@ jobs:
         # set any of your varialbes from your .env file here based on the secrets you set in your repo
         env:
           FORCE_COLOR: "3"
-          TD_TEST_USERNAME: ${{ secrets.TD_TEST_USERNAME }}
-          TD_TEST_PASSWORD: ${{ secrets.TD_TEST_PASSWORD }}
           TD_API_KEY: ${{ secrets.TESTDRIVER_API_KEY }}
-          TD_WEBSITE: ${{ secrets.TD_WEBSITE }}
+          TD_APP: ${{ secrets.TD_APP}}
+          TD_REPO_CLONE: ${{ secrets.TD_REPO_CLONE }}
           TD_THIS_FILE: ${{ matrix.test.name }}
           TD_VERSION: "latest" # v6 is latest "6.0.11-canary.70bdb70.0"
