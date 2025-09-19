@@ -1,0 +1,197 @@
+name: TestDriver CI to Airtable
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Test folder or single file to run (e.g. debug or /tests/test_case.yaml). Do not include the testdriver folder in the path."
+        required: false
+        default: "tests"
+
+jobs:
+  gather:
+    name: Gather Test Files
+    runs-on: ubuntu-latest
+    outputs:
+      test_files: ${{ steps.test_list.outputs.files }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find test files from folder or specific file
+        id: test_list
+        run: |
+          # get the file(s) to test
+          if [[ "${{ github.event.inputs.target }}" != "" ]]; then
+            target_path="testdriver/${{ github.event.inputs.target }}"
+          else
+            target_path="testdriver/tests"
+          fi
+
+          echo "📍 Target path: $target_path"
+
+          if [[ -f "$target_path" ]]; then
+            echo "✅ Detected single file input."
+            files="$target_path"
+          elif [[ -d "$target_path" ]]; then
+            echo "✅ Detected folder input. Searching for .yml and .yaml files..."
+            files=$(find "$target_path" \( -name '*.yml' -o -name '*.yaml' \) | sort -V)
+          else
+            echo "❌ Error: '$target_path' is not a valid file or folder."
+            exit 1
+          fi
+
+          if [[ -z "$files" ]]; then
+            echo "❌ No test files found in $target_path"
+            exit 1
+          fi
+
+          files_json=$(echo "$files" | jq -R -s -c 'split("\n") | map(select(. != "") | {path: ., name: (. | split("/")[-1])})')
+
+          echo "$files"
+          echo "files=$files_json" >> $GITHUB_OUTPUT
+
+  test:
+    needs: gather
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test: ${{ fromJson(needs.gather.outputs.test_files) }}
+      max-parallel: 8
+      fail-fast: false
+    name: ${{ matrix.test.name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run TestDriver v6 and capture status
+        id: run_test
+        shell: bash
+        env:
+            FORCE_COLOR: "3"
+            TD_WEBSITE: ${{ secrets.TD_WEBSITE }}
+            TD_API_KEY: ${{ secrets.TESTDRIVER_API_KEY }}
+            TD_THIS_FILE: ${{ matrix.test.name }}
+        run: |
+            set +e
+            set -o pipefail
+            start_ms=$(($(date +%s%N)/1000000))
+
+            echo "▶️ Running: ${{ matrix.test.path }}"
+            # Capture both stdout/stderr to a log while keeping live output
+            npx testdriverai@latest run "${{ matrix.test.path }}" --summary=summary.md 2>&1 | tee step_output.log
+            exit_code=${PIPESTATUS[0]}
+
+            end_ms=$(($(date +%s%N)/1000000))
+            duration_ms=$((end_ms - start_ms))
+            if [ $exit_code -eq 0 ]; then status="passed"; else status="failed"; fi
+
+            # Extract Dashcam link from the log (case-insensitive, last one wins)
+            dashcam_url="$(grep -Eo -i 'https://app\.dashcam\.io/replay/[a-z0-9]+(\?share=[A-Za-z0-9]+)?' step_output.log | tail -n 1 || true)"
+
+            echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
+            echo "status=$status" >> $GITHUB_OUTPUT
+            echo "duration_ms=$duration_ms" >> $GITHUB_OUTPUT
+            echo "test_name=${{ matrix.test.name }}" >> $GITHUB_OUTPUT
+            echo "test_path=${{ matrix.test.path }}" >> $GITHUB_OUTPUT
+            echo "run_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_OUTPUT
+            echo "run_id=$GITHUB_RUN_ID" >> $GITHUB_OUTPUT
+            echo "dashcam_url=$dashcam_url" >> $GITHUB_OUTPUT
+
+            # Summary to JSON string (may be empty)
+            if [[ -f summary.md ]]; then summary_json=$(jq -Rs . < summary.md); else summary_json=$(jq -n --arg s "" '$s'); fi
+            echo "summary_json=$summary_json" >> $GITHUB_OUTPUT
+
+            echo "Test status: $status (exit code: $exit_code, duration: ${duration_ms}ms)"
+             # 🔴 Make the step fail (and thus the job) if test failed
+            if [ $exit_code -ne 0 ]; then
+              echo "::error title=Test failed::Exit code $exit_code"
+              exit $exit_code
+            fi
+
+      - name: Upload summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-${{ matrix.test.name }}
+          path: summary.md
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Post results to Airtable
+        if: always()
+        shell: bash
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}   # e.g. appXXXXXXXXXXXXXX
+          AIRTABLE_TABLE_ID: ${{ secrets.AIRTABLE_TABLE_ID }} # optional: tblXXXXXXXXXXXXXX
+        run: |
+          set -euo pipefail
+
+          : "${AIRTABLE_API_KEY:?Missing AIRTABLE_API_KEY}"
+          : "${AIRTABLE_BASE_ID:?Missing AIRTABLE_BASE_ID}"
+
+          # Prefer table ID if provided, else URL-encode the name (handles spaces/symbols)
+          if [[ -n "${AIRTABLE_TABLE_ID:-}" ]]; then
+            table_segment="$AIRTABLE_TABLE_ID"
+          else
+            : "${AIRTABLE_TABLE_NAME:?Missing AIRTABLE_TABLE_NAME (or provide AIRTABLE_TABLE_ID)}"
+            table_segment="$(jq -rn --arg t "$AIRTABLE_TABLE_NAME" '$t|@uri')"
+          fi
+
+          sha="${GITHUB_SHA}"
+          branch_ref="$GITHUB_REF"
+          repo_slug="$GITHUB_REPOSITORY"
+          workflow_name="$GITHUB_WORKFLOW"
+
+          # String Pass from exit code
+          if [ "${{ steps.run_test.outputs.exit_code }}" -eq 0 ]; then
+            pass_str="True"
+          else
+            pass_str="False"
+          fi
+
+          # Preflight: make sure the table route exists (should be 200)
+          preflight_code=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${table_segment}?maxRecords=1" \
+            -H "Authorization: Bearer ${AIRTABLE_API_KEY}")
+          if [[ "$preflight_code" != "200" ]]; then
+            echo "Airtable route not reachable (HTTP $preflight_code)."
+            echo "Check AIRTABLE_BASE_ID, table name/ID, and PAT access/scopes."
+            exit 1
+          fi
+
+          # Compose JSON payload (booleans/numbers unquoted)
+          payload=$(cat <<EOF
+          {
+            "records": [
+              {
+                "fields": {
+                  "Pass": "$pass_str",
+                  "Result Summary": ${{ steps.run_test.outputs.summary_json }},
+                  "RunID": "${{ steps.run_test.outputs.run_id }}",
+                  "SHA": "$sha",
+                  "Branch": "$branch_ref",
+                  "Prompt": "/run ${{ matrix.test.name }}",
+                  "Version": "latest",
+                  "Platform": "windows",
+                  "Duration": ${{ steps.run_test.outputs.duration_ms }},
+                  "Replay": "${{ steps.run_test.outputs.dashcam_url }}",
+                  "Repo": "$repo_slug",
+                  "Test": "$workflow_name"
+                }
+              }
+            ], "typecast": true
+          }
+          EOF
+          )
+
+          curl -sS -X POST "https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${table_segment}" \
+            -H "Authorization: Bearer ${AIRTABLE_API_KEY}" \
+            -H "Content-Type: application/json" \
+            --data "$payload"
+

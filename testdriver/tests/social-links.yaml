@@ -1,0 +1,10 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68ccaac340269e4ba6ba4ac6
+steps:
+  - prompt: continue
+    commands:
+      - command: run
+        file: ../snippets/onboarding.yaml
+      - command: run
+        file: ../snippets/launch-edge-onboarding.yaml
+  - prompt: test social links and assert they go to valid relevant urls. Go back to Gitbutler and make sure all social links have been clicked before finishing.

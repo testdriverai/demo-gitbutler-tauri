@@ -1,0 +1,23 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68ccaac340269e4ba6ba4ac6
+steps:
+  - prompt: click continue
+    commands:
+      - command: hover-text
+        text: Your full name
+        description: name input field in the git author setup modal
+        action: click
+      - command: type
+        text: Tauri Tester
+      - command: hover-text
+        text: your.email@example.com
+        description: email input field in the git author setup modal
+        action: click
+      - command: type
+        text: tauritester@testdriver.ai
+      - command: hover-text
+        text: Save & Continue
+        description: save and continue button in the git author setup modal
+        action: click
+      - command: assert
+        expect: the repo is not successfully loaded and an error message is shown about the repo not having a remote

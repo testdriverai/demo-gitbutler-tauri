@@ -1,0 +1,46 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68cd6efe113c7a9f762b4b88
+steps:
+  - prompt: >-
+      double click the microsoft edge iconin the toolbar along the bottom of the
+      screen
+    commands:
+      - command: hover-image
+        description: >-
+          blue and green swirl icon for Microsoft Edge in the taskbar at the
+          bottom left
+        action: double-click
+  - prompt: complete the onboarding steps
+    commands:
+      - command: focus-application
+        name: Microsoft Edge
+      - command: hover-text
+        text: Start without your data
+        description: >-
+          gray button below the blue "Sign in to sync data" button on the Edge
+          welcome screen
+        action: click
+  - prompt: click Confirm and continue
+    commands:
+      - command: hover-text
+        text: Confirm and continue
+        description: >-
+          blue button labeled Confirm and continue near the bottom left of the
+          Edge setup screen
+        action: click
+  - prompt: click Continue without Google data
+    commands:
+      - command: hover-text
+        text: Continue without Google data
+        description: >-
+          gray button labeled Continue without Google data below the blue Sign
+          in for Google data button on the Edge setup screen
+        action: click
+  - prompt: click Confirm and start browsing
+    commands:
+      - command: hover-text
+        text: Confirm and start browsing
+        description: >-
+          blue button labeled Confirm and start browsing near the bottom left of
+          the Edge setup screen
+        action: click

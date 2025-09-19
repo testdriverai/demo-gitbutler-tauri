@@ -1,0 +1,35 @@
+version: 6.0.0
+session: 67f00511acbd9ccac373edf7
+steps:
+  # Sample PRERUN script
+  # Runs BEFORE each test in the suite
+  # to run other scripts when provisioning a machine, see provision.yaml
+  # to run scripts after a test, see postrun.yaml
+  # Docs for `exec` command: https://docs.testdriver.ai/commands/exec
+  # Docs for lifecycle scripts: https://docs.testdriver.ai/guide/lifecycle
+  - prompt: launch chrome for testing, install Gitbutler and setup dashcam
+    commands:
+      # this script launches GitButler and waits for it to be ready
+      - command: exec
+        lang: pwsh
+        code: |
+          $installDir = "C:\Program Files\GitButler"
+          $exePath = Join-Path $installDir "gitbutler-tauri.exe"
+
+          if (Test-Path $exePath) {
+              Write-Host "Launching GitButler..."
+              Start-Process $exePath
+          } else {
+              Write-Error "GitButler executable not found at $exePath. Is it installed?"
+          }
+      - command: wait-for-text
+        text: ${TD_APP}
+        timeout: 120000
+      - command: exec
+        lang: pwsh
+        code: |
+          # dashcam track --name="Web Logs" --type="web" --pattern="*"
+          dashcam track --name=TestDriver --type=application --pattern="C:\Users\testdriver\Documents\testdriver.log"
+      - command: exec
+        lang: pwsh
+        code: dashcam start

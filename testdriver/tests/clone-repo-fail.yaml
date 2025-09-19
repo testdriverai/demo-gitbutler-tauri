@@ -1,0 +1,29 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68ccad5740269e4ba6ba4b0c
+steps:
+  - prompt: continue
+    commands: 
+      - command: run
+        file: ../snippets/onboarding.yaml
+  - prompt: >-
+      click Clone repository. add
+      https://google.com/notarepo.git to the url field and
+      clone the repo
+    commands:
+      - command: focus-application
+        name: GitButler
+      - command: hover-text
+        text: Clone repository
+        description: clone repository button in the center of the GitButler welcome screen
+        action: click
+      - command: press-keys
+        keys: 
+          - tab
+      - command: type 
+        text: https://google.com/notarepo.git
+      - command: hover-text
+        text: Clone
+        description: clone button at the bottom right of the clone repository dialog
+        action: click
+      - command: assert
+        expect: an error message about being unable to clone the repo

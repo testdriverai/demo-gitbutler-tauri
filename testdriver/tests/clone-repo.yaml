@@ -1,0 +1,54 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68ccad5740269e4ba6ba4b0c
+steps:
+  - prompt: continue
+    commands: 
+      - command: run
+        file: ../snippets/onboarding.yaml
+  - prompt: >-
+      click Clone repository. add
+      ${TD_REPO_CLONE} to the url field and
+      clone the repo
+    commands:
+      - command: focus-application
+        name: GitButler
+      - command: hover-text
+        text: Clone repository
+        description: clone repository button in the center of the GitButler welcome screen
+        action: click
+      - command: press-keys
+        keys: 
+          - tab
+      - command: type 
+        text: ${TD_REPO_CLONE}
+      - command: hover-text
+        text: Clone
+        description: clone button at the bottom right of the clone repository dialog
+        action: click
+  - prompt: verify the origin/main branch is selected and click Continue
+    commands:
+      - command: assert
+        expect: origin/main is selected in the branch selector dropdown
+      - command: hover-text
+        text: Continue
+        description: teal Continue button at the bottom right of the clone repository dialog
+        action: click
+  - prompt: click the new branch button, clear the sample branch name, type tauri-test and create the branch
+    commands:
+      - command: hover-text
+        text: New branch
+        description: new branch button to the right of the branch selector dropdown
+        action: click
+      - command: press-keys
+        keys: 
+          - ctrl
+          - a
+      - command: press-keys
+        keys:
+          - backspace
+      - command: type 
+        text: tauri-test
+      - command: hover-text
+        text: Create branch
+        description: create branch button at the bottom right of the new branch dialog
+        action: click

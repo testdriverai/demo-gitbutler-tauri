@@ -1,0 +1,16 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68ccaac340269e4ba6ba4ac6
+steps:
+  - prompt: click continue if available
+    commands:
+      - command: if
+        condition: teal Continue button is visible on the screen
+        then:
+          - command: hover-text
+            text: Continue
+            description: teal Continue button at the bottom right of the onboarding screen
+            action: click
+        else:
+          - command: focus-application
+            name: GitButler
+        

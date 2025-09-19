@@ -1,0 +1,128 @@
+version: 6.0.0
+session: sourceandsummitv6testing
+steps:
+  # Sample PROVISION script
+  # Runs ONCE when your VM is created
+  # to run other scripts before a test, see prerun.yaml
+  # to run scripts after a test, see postrun.yaml
+  # Docs for exec command: https://docs.testdriver.ai/commands/exec
+  # Docs for lifecycle scripts: https://docs.testdriver.ai/guide/lifecycle
+  - prompt: "Provision"
+    commands:
+      - command: exec
+        lang: pwsh
+        code: |
+          # Install-GitButler.ps1
+          Write-Host "Starting GitButler installation..."
+
+          # Define variables
+          $downloadUrl = "https://app.gitbutler.com/downloads/release/windows/x86_64/msi"
+          $installerPath = Join-Path $env:TEMP "gitbutler.msi"
+          $installDir = "C:\Program Files\GitButler"
+
+          # Download the installer
+          Write-Host "Downloading GitButler MSI..."
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath
+
+          if (-Not (Test-Path $installerPath)) {
+              Write-Error "Download failed. Exiting."
+              exit 1
+          }
+
+          # Install silently
+          Write-Host "Installing GitButler..."
+          $installProcess = Start-Process msiexec.exe -ArgumentList "/i `"$installerPath`" /qn /norestart" -Wait -PassThru
+
+          if ($installProcess.ExitCode -eq 0) {
+              Write-Host "GitButler installed successfully!"
+          } else {
+              Write-Error "GitButler installation failed with exit code $($installProcess.ExitCode)."
+              exit $installProcess.ExitCode
+          }
+
+          # Cleanup installer
+          if (Test-Path $installerPath) {
+              Remove-Item $installerPath -Force
+              Write-Host "Cleaned up installer file."
+          }
+
+          # Update PATH if not already set
+          $envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+          if ($envPath -notlike "*$installDir*") {
+              Write-Host "Adding GitButler to PATH..."
+              $newPath = "$envPath;$installDir"
+              [System.Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
+              Write-Host "GitButler path added. Restart your terminal for it to take effect."
+          } else {
+              Write-Host "GitButler path already in PATH."
+          }
+      - command: exec
+        lang: pwsh
+        code: |
+          # Init-HelloWorld-Repo.ps1
+          Write-Host "Initializing HelloWorld Node.js project with Git..."
+
+          # Variables
+          $projectName = "HelloWorldNode"
+          $desktopPath = [Environment]::GetFolderPath("Desktop")
+          $projectPath = Join-Path $desktopPath $projectName
+
+          # Create project folder
+          if (-Not (Test-Path $projectPath)) {
+              New-Item -ItemType Directory -Path $projectPath | Out-Null
+              Write-Host "Created project directory: $projectPath"
+          } else {
+              Write-Host "Project directory already exists: $projectPath"
+          }
+
+          Set-Location $projectPath
+
+          # Initialize git repo
+          git init | Out-Null
+          Write-Host "Initialized Git repository."
+
+          # Create package.json
+          $packageJson = @"
+          {
+            "name": "hello-world-node",
+            "version": "1.0.0",
+            "description": "Simple Hello World Node.js project",
+            "main": "index.js",
+            "scripts": {
+              "start": "node index.js"
+            },
+            "author": "",
+            "license": "MIT"
+          }
+          "@
+          Set-Content -Path "package.json" -Value $packageJson -Encoding UTF8
+          Write-Host "Created package.json"
+
+          # Create index.js
+          $indexJs = @"
+          function helloWorld() {
+              console.log('hello world');
+          }
+
+          helloWorld();
+          "@
+          Set-Content -Path "index.js" -Value $indexJs -Encoding UTF8
+          Write-Host "Created index.js"
+
+          # Create .gitignore
+          $gitIgnore = @"
+          node_modules/
+          npm-debug.log
+          .env
+          "@
+          Set-Content -Path ".gitignore" -Value $gitIgnore -Encoding UTF8
+          Write-Host "Created .gitignore"
+
+          # Stage and commit
+          git add .
+          git commit -m "Initial commit: Hello World Node.js project" | Out-Null
+          Write-Host "Committed initial project files."
+
+          Write-Host "`nProject setup complete!"
+          Write-Host "To run: cd `"$projectPath`" && npm install && npm start"
+

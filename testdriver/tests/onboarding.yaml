@@ -1,0 +1,33 @@
+version: 6.0.11-canary.04f66c9.0
+session: 68ccaac340269e4ba6ba4ac6
+steps:
+  - prompt: click all toggles and make sure no errors are present
+    commands:
+      - command: hover-text
+        text: Error reporting
+        description: label for the error reporting toggle
+        action: click
+      - command: hover-text
+        text: Error reporting
+        description: label for the error reporting toggle
+        action: click
+      - command: hover-text
+        text: Usage metrics
+        description: label for the usage metrics toggle
+        action: click
+      - command: hover-text
+        text: Usage metrics
+        description: label for the usage metrics toggle
+        action: click
+      - command: hover-text
+        text: Non-anonymous usage metrics
+        description: label for the non-anonymous usage metrics toggle
+        action: click
+      - command: hover-text
+        text: Non-anonymous usage metrics
+        description: label for the non-anonymous usage metrics toggle
+        action: click
+      - command: hover-text
+        text: Continue
+        description: teal Continue button at the bottom right of the onboarding screen
+        action: click
