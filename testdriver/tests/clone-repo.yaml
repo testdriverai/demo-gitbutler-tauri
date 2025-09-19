@@ -30,7 +30,7 @@ steps:
       - command: assert
         expect: origin/main is selected in the branch selector dropdown
       - command: hover-text
-        text: Continue
+        text: Let's go
         description: teal Continue button at the bottom right of the clone repository dialog
         action: click
   - prompt: click the new branch button, clear the sample branch name, type tauri-test and create the branch
