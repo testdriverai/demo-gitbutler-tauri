@@ -59,70 +59,12 @@ steps:
       - command: exec
         lang: pwsh
         code: |
-          # Init-HelloWorld-Repo.ps1
-          Write-Host "Initializing HelloWorld Node.js project with Git..."
+          # Configure git to avoid interactive prompts
+          git config --global core.sshCommand 'ssh -o StrictHostKeyChecking=accept-new'
+          # Bypass "Login with GitHub" UI
+          git config --global credential.helper manager-core
 
-          # Variables
-          $projectName = "HelloWorldNode"
-          $desktopPath = [Environment]::GetFolderPath("Desktop")
-          $projectPath = Join-Path $desktopPath $projectName
+          Write-Host "Cloning https://github.com/testdriverai/gitbutler-remote-sample-repo"
+          git clone --depth 1 https://github.com/testdriverai/gitbutler-remote-sample-repo.git C:\Users\testdriver\Desktop\gitbutler-remote-sample-repo
 
-          # Create project folder
-          if (-Not (Test-Path $projectPath)) {
-              New-Item -ItemType Directory -Path $projectPath | Out-Null
-              Write-Host "Created project directory: $projectPath"
-          } else {
-              Write-Host "Project directory already exists: $projectPath"
-          }
-
-          Set-Location $projectPath
-
-          # Initialize git repo
-          git init | Out-Null
-          Write-Host "Initialized Git repository."
-
-          # Create package.json
-          $packageJson = @"
-          {
-            "name": "hello-world-node",
-            "version": "1.0.0",
-            "description": "Simple Hello World Node.js project",
-            "main": "index.js",
-            "scripts": {
-              "start": "node index.js"
-            },
-            "author": "",
-            "license": "MIT"
-          }
-          "@
-          Set-Content -Path "package.json" -Value $packageJson -Encoding UTF8
-          Write-Host "Created package.json"
-
-          # Create index.js
-          $indexJs = @"
-          function helloWorld() {
-              console.log('hello world');
-          }
-
-          helloWorld();
-          "@
-          Set-Content -Path "index.js" -Value $indexJs -Encoding UTF8
-          Write-Host "Created index.js"
-
-          # Create .gitignore
-          $gitIgnore = @"
-          node_modules/
-          npm-debug.log
-          .env
-          "@
-          Set-Content -Path ".gitignore" -Value $gitIgnore -Encoding UTF8
-          Write-Host "Created .gitignore"
-
-          # Stage and commit
-          git add .
-          git commit -m "Initial commit: Hello World Node.js project" | Out-Null
-          Write-Host "Committed initial project files."
-
-          Write-Host "`nProject setup complete!"
-          Write-Host "To run: cd `"$projectPath`" && npm install && npm start"
 
