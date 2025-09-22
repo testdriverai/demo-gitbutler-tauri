@@ -5,6 +5,7 @@ steps:
     commands: 
       - command: run
         file: ../snippets/onboarding.yaml
+
   - prompt: click add local project. add the gitbutler-remote-sample-repo project from the Desktop
     commands:
       - command: focus-application
@@ -25,6 +26,11 @@ steps:
         text: Select Folder
         description: select folder button at the bottom of the Select Folder dialog
         action: click
+      - command: hover-text
+        text: Let's go
+        description: teal Let's go button
+        action: click
+
   - prompt: >-
       click Your full name and enter Tauri Tester. Click your email@example.com
       and enter mike+tauri@testdriver.ai. Save & continue
@@ -37,7 +43,8 @@ steps:
         else:
           - command: focus-application
             name: GitButler
-  # - prompt: remove the project
+
+  # # - prompt: remove the project
   #   commands:
   #     - command: hover-text
   #       text: Remove project...
@@ -53,45 +60,45 @@ steps:
   #         red Remove button in the confirmation dialog at the bottom right of
   #         the modal
   #       action: click
-  - prompt: open powershell and set the remote for the HelloWorldNode repo
-    commands:
-      - command: press-keys
-        keys:
-          - win
-      - command: type
-        text: powershell
-      - command: press-keys
-        keys:
-          - enter
-  - prompt: type cd Desktop\HelloWorldNode and hit enter
-    commands:
-      - command: type
-        text: cd Desktop\HelloWorldNode
-      - command: press-keys
-        keys:
-          - enter
-      - command: type
-        text: git branch -M main
-      - command: press-keys
-        keys:
-          - enter
-  - prompt: >-
-      type git remote add origin
-      https://github.com/testdriverai/gitbutler-remote-sample-repo.git and hit
-      enter
-    commands:
-      - command: type
-        text: >-
-          git remote add origin
-          https://github.com/testdriverai/gitbutler-remote-sample-repo.git
-      - command: press-keys
-        keys:
-          - enter
-      - command: type
-        text: exit
-      - command: press-keys
-        keys:
-          - enter
+  # - prompt: open powershell and set the remote for the HelloWorldNode repo
+  #   commands:
+  #     - command: press-keys
+  #       keys:
+  #         - win
+  #     - command: type
+  #       text: powershell
+  #     - command: press-keys
+  #       keys:
+  #         - enter
+  # - prompt: type cd Desktop\HelloWorldNode and hit enter
+  #   commands:
+  #     - command: type
+  #       text: cd Desktop\HelloWorldNode
+  #     - command: press-keys
+  #       keys:
+  #         - enter
+  #     - command: type
+  #       text: git branch -M main
+  #     - command: press-keys
+  #       keys:
+  #         - enter
+  # - prompt: >-
+  #     type git remote add origin
+  #     https://github.com/testdriverai/gitbutler-remote-sample-repo.git and hit
+  #     enter
+  #   commands:
+  #     - command: type
+  #       text: >-
+  #         git remote add origin
+  #         https://github.com/testdriverai/gitbutler-remote-sample-repo.git
+  #     - command: press-keys
+  #       keys:
+  #         - enter
+  #     - command: type
+  #       text: exit
+  #     - command: press-keys
+  #       keys:
+  #         - enter
   # - prompt: >-
   #     click add local project. Add the HelloWorldNode folder from the desktop.
   #     Assert the repo now loads since it has a remote
@@ -114,20 +121,20 @@ steps:
   #       text: Select Folder
   #       description: select folder button at the bottom of the Select Folder dialog
   #       action: click
-  - prompt: focus gitbutler and reload the view to pick up the repo change
-    commands:
-      - command: focus-application
-        name: GitButler
-      # reload the app to pick up the repo change
-      - command: hover-text
-        text: View
-        description: View menu item in the top menu bar
-        action: click
-      - command: hover-text
-        text: Reload View
-        description: Reload View menu item in the View dropdown
-        action: click
-  - prompt: assert the repo loads successfully
-    commands:
-      - command: assert
-        expect: the repository loads successfully and the project dashboard is visible
+  # - prompt: focus gitbutler and reload the view to pick up the repo change
+  #   commands:
+  #     - command: focus-application
+  #       name: GitButler
+  #     # reload the app to pick up the repo change
+  #     - command: hover-text
+  #       text: View
+  #       description: View menu item in the top menu bar
+  #       action: click
+  #     - command: hover-text
+  #       text: Reload View
+  #       description: Reload View menu item in the View dropdown
+  #       action: click
+  # - prompt: assert the repo loads successfully
+  #   commands:
+  #     - command: assert
+  #       expect: the repository loads successfully and the project dashboard is visible
