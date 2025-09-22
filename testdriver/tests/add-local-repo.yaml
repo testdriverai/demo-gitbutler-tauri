@@ -5,7 +5,7 @@ steps:
     commands: 
       - command: run
         file: ../snippets/onboarding.yaml
-  - prompt: click add local project. add the HelloWorldNode project from the Desktop
+  - prompt: click add local project. add the gitbutler-remote-sample-repo project from the Desktop
     commands:
       - command: focus-application
         name: GitButler
@@ -18,8 +18,8 @@ steps:
         description: Desktop shortcut in the left sidebar of the Select Folder dialog
         action: click
       - command: hover-text
-        text: HelloWorldNode
-        description: HelloWorldNode folder in the Desktop folder selection dialog
+        text: gitbutler-remote-sample-repo
+        description: gitbutler-remote-sample-repo folder in the Desktop folder selection dialog
         action: click
       - command: hover-text
         text: Select Folder

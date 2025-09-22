@@ -19,5 +19,7 @@ steps:
         text: Save & Continue
         description: save and continue button in the git author setup modal
         action: click
-      - command: assert
-        expect: the repo is not successfully loaded and an error message is shown about the repo not having a remote
+
+      # The resulting view may be different depending on what happened *before* this snippet
+      # - command: assert
+      #   expect: the repo is not successfully loaded and an error message is shown about the repo not having a remote
