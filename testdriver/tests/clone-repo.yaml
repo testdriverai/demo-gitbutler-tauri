@@ -33,6 +33,20 @@ steps:
         text: Let's go
         description: teal Continue button at the bottom right of the clone repository dialog
         action: click
+
+  - prompt: >-
+      click Your full name and enter Tauri Tester. Click your email@example.com
+      and enter mike+tauri@testdriver.ai. Save & continue
+    commands:
+      - command: if
+        condition: the git author setup modal is shown
+        then:
+          - command: run
+            file: ../snippets/set-git-author.yaml
+        else:
+          - command: focus-application
+            name: GitButler
+
   - prompt: click the new branch button, clear the sample branch name, type tauri-test and create the branch
     commands:
       - command: hover-text
