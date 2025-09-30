@@ -1,0 +1,21 @@
+{
+  "name": "demo-gitbutler-tauri",
+  "version": "1.0.0",
+  "description": "![TestDriver.ai](https://github.com/dashcamio/testdriver/assets/318295/2a0ad981-8504-46f0-ad97-60cb6c26f1e7)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testdriverai/demo-gitbutler-tauri.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/testdriverai/demo-gitbutler-tauri/issues"
+  },
+  "homepage": "https://github.com/testdriverai/demo-gitbutler-tauri#readme"
+}
